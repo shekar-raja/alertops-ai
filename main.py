@@ -1,8 +1,10 @@
-import logging
+from helper_functions import logger
+logger.log.info("AlertOps AI Application Started Successfully")
 
-# Configurations
-logging.basicConfig(format="%(levelname)s: %(message)s: %(asctime)s", 
-                    level=logging.DEBUG,
-                    datefmt="%Y-%m-%d %H:%M")
+from data_ingestion import generate_synthetic_logs
+from helper_functions import env
+from data_ingestion.kafka_components import kafka_consumer
 
-logging.info("AlertOps AI Application Started Successfully")
+generate_synthetic_logs.generate_logs()
+
+kafka_consumer.consume_logs()
