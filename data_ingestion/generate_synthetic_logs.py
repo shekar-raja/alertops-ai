@@ -8,7 +8,8 @@ from helper_functions import env
 faker = Faker()
 
 # Generate synthetic raw logs as strings
-def generate_logs(log_count=10, log_type=env.get_env("LOG_TYPE")):
+def generate_logs(log_count=10):
+    log_type=env.get_env("LOG_TYPE")
     services = ["cloudwatch", "grafana", "prometheus"]
     levels = ["INFO", "WARN", "ERROR", "DEBUG", "CRITICAL"]
     messages = [
