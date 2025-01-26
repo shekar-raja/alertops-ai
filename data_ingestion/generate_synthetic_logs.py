@@ -7,36 +7,68 @@ from helper_functions import env
 
 faker = Faker()
 
+message_levels = {
+    "INFO": [
+        "Scheduled backup completed successfully",
+        "System boot completed",
+        "Database query executed in 0.015 seconds",
+        "File transfer completed: 100MB sent",
+        "Service restarted successfully",
+        "System health check passed",
+        "Number of active users: 150",
+        "Response time for API endpoint: 120ms"
+    ],
+    "WARN": [
+        "Disk cleanup recommended: Temporary files exceeding threshold",
+        "Bandwidth utilization exceeded 90%",
+        "Network latency exceeds acceptable limit",
+        "High memory usage detected",
+        "CPU temperature nearing safe limit",
+        "Unusual spike in transaction volume detected"
+    ],
+    "ERROR": [
+        "Failed to allocate memory",
+        "Disk read error on partition /dev/sda1",
+        "Service endpoint returned HTTP 500",
+        "Connection timed out",
+        "Unable to connect to SMTP server",
+        "Database replication lag exceeds threshold",
+        "Error writing to disk"
+    ],
+    "CRITICAL": [
+        "Disk space critically low",
+        "System reboot initiated unexpectedly",
+        "Unauthorized access attempt detected",
+        "Malware scan detected infected file: trojan.exe",
+        "Root access granted to unauthorized user",
+        "Power supply unit failure in rack A",
+        "Overheating detected in data center zone B"
+    ]
+}
+
 # Generate synthetic raw logs as strings
 def generate_logs(log_count=10):
     log_type=env.get_env("LOG_TYPE")
     services = ["cloudwatch", "grafana", "prometheus"]
-    levels = ["INFO", "WARN", "ERROR", "DEBUG", "CRITICAL"]
-    messages = [
-        "CPU usage exceeded threshold",
-        "Disk space critically low",
-        "Service unavailable",
-        "High memory usage detected",
-        "Connection timed out",
-        "Successful API request",
-        "Error writing to disk",
-        "Alert triggered for disk I/O"
-    ]
     
     for _ in range(log_count):
         timestamp = faker.date_time_this_year().strftime('%Y-%m-%d %H:%M:%S')
 
+        # Select a random log level and corresponding message
+        level = random.choice(list(message_levels.keys()))
+        message = random.choice(message_levels[level])
+
         if log_type == "cloudwatch":
             log = (
-                f"{timestamp} [{random.choice(['INFO', 'ERROR'])}] "
+                f"{timestamp} [{level}] "
                 f"[LogGroup:{random.choice(['/aws/lambda/my-function', '/aws/ec2/my-instance'])}] "
-                f"[LogStream:{faker.uuid4()}] {random.choice(['Request completed successfully.', 'CPU usage exceeded 90%.'])}"
+                f"[LogStream:{faker.uuid4()}] {message}"
             )
 
         elif log_type == "zabbix":
             log = (
-                f"{timestamp} [{random.choice(['High', 'Critical'])}] "
-                f"Trigger: {random.choice(['Disk space low on /dev/sda1', 'MySQL service down'])} "
+                f"{timestamp} [{level}] "
+                f"Trigger: {message} "
                 f"Status: Problem Host: {random.choice(['web-server-01', 'db-server-01'])}"
             )
 
@@ -45,16 +77,16 @@ def generate_logs(log_count=10):
                 f"{timestamp} Monitor: {random.choice(['MyWebsite', 'MyAPI'])} "
                 f"Type: {random.choice(['HTTP', 'Keyword'])} "
                 f"Status: {random.choice(['Up', 'Down'])} "
-                f"{random.choice(['Duration: 5 minutes', 'ResponseTime: 200ms'])}"
+                f"{message}"
             )
 
         elif log_type == "grafana":
             log = (
-                f"{timestamp} [{random.choice(['Alerting', 'OK'])}] "
+                f"{timestamp} [{level}] "
                 f"Alert: {random.choice(['High CPU Usage', 'Disk Space Low'])} "
                 f"State: {random.choice(['Firing', 'Resolved'])} "
                 f"Instance: {random.choice(['prod-server-01', 'prod-server-02'])} "
-                f"Details: {random.choice(['CPU usage exceeded 85%', 'Disk space below 15%'])}"
+                f"Details: {message}"
             )
 
         # elif log_type == "prometheus":
@@ -66,17 +98,17 @@ def generate_logs(log_count=10):
         #     )
         elif log_type == "loki":
             log = (
-                f"{timestamp} level={random.choice(['info', 'error'])} "
-                f"msg=\"{random.choice(['Service unavailable', 'Request processed successfully'])}\" "
+                f"{timestamp} level={level.lower()} "
+                f"msg=\"{message}\" "
                 f"service={random.choice(['auth-server', 'web-server'])} "
                 f"environment={random.choice(['staging', 'production'])}"
             )
         else:    
             log = (
                 f"[{timestamp}] " 
-                f"{random.choice(levels)} " 
+                f"{level} " 
                 f"{random.choice(services)}: "
-                f"{random.choice(messages)}"
+                f"{message}"
             )
 
         kafka_producer.push_log_to_kafka(log)

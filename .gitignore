@@ -10,5 +10,8 @@ env/
 # Logs
 *.log
 
+# datasets
+datasets/
+
 environments/*.env
 launch.json
