@@ -3,6 +3,8 @@ from kafka import KafkaConsumer
 from helper_functions import env
 from helper_functions import logger
 
+logs = []
+
 def consume_logs():
     logger.log.info("Kafka consumer connected to server")
     consumer = KafkaConsumer(
@@ -15,7 +17,8 @@ def consume_logs():
 
     try:
         for message in consumer:
-            print(f"Received log: {message.value}")
+            # print(f"Received log: {message.value}")
+            logs.append(message.value)
     except KeyboardInterrupt:
         logger.log.info("Kafka consumer stopped.")
     finally:
