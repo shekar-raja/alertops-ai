@@ -1,9 +1,13 @@
 import random
+from tqdm import tqdm
 from faker import Faker
+import pandas as pd
 
 from data_ingestion.kafka_components import kafka_producer
 from helper_functions import env
-# from helper_functions import logger
+from helper_functions import logger
+
+logger.log.info("Kafka producer connected to server")
 
 faker = Faker()
 
@@ -45,13 +49,14 @@ message_levels = {
         "Overheating detected in data center zone B"
     ]
 }
+logs = []
 
 # Generate synthetic raw logs as strings
 def generate_logs(log_count=10):
     log_type=env.get_env("LOG_TYPE")
     services = ["cloudwatch", "grafana", "prometheus"]
     
-    for _ in range(log_count):
+    for _ in tqdm(range(log_count), desc="Generating synthetic logs"):
         timestamp = faker.date_time_this_year().strftime('%Y-%m-%d %H:%M:%S')
 
         # Select a random log level and corresponding message
@@ -111,4 +116,7 @@ def generate_logs(log_count=10):
                 f"{message}"
             )
 
+        logs.append(log)
         kafka_producer.push_log_to_kafka(log)
+
+    pd.DataFrame(logs).to_csv('synthetic_logs.csv', index=False)
