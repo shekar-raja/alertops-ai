@@ -147,7 +147,7 @@ def generate_logs(log_count=10):
     services = ["cloudwatch", "grafana", "prometheus"]
     
     for _ in tqdm(range(log_count), desc="Generating synthetic logs"):
-        timestamp = faker.date_time_this_year().strftime('%Y-%m-%d %H:%M:%S')
+        timestamp = faker.date_time_this_century().strftime('%Y-%m-%d %H:%M:%S')
 
         # Select a random log level and corresponding message
         level = random.choice(list(message_levels.keys()))
